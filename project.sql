@@ -55,5 +55,52 @@ UNION ALL
 SELECT 'Products' table_name ,
        9 number_of_attributes, 
 	   COUNT(*) number_of_rows
-  FROM products 
+  FROM products ;
+/*
+Now that we know the db a little better, we can answwer the first question:
+WHICH PRODUCTS SHOULD WE ORDER MORE OF OR LESS OF? 
+This question refers to inventory reports, including low stock(product in demand) and product performance. This 
+will optimize the supply and user experience by preventing the best-selling products from going out of stock.
+*/
+-- Query to compute the low stock for each product using a corelated subquerty
+SELECT productCode, 
+       ROUND(SUM(quantityOrdered)*1.0/(SELECT quantityInStock
+	   FROM products p
+	   WHERE 
+	   o.productCode = p.productCode),2) low_stock
+ FROM  orderdetails o
+ GROUP BY 1
+ ORDER BY low_stock DESC
+ LIMIT 10;
+ 
+-- Query to compute the product performance for each product
+SELECT productCode,
+       SUM(quantityOrdered * priceEach ) product_performance 
+FROM orderdetails o
+GROUP BY 1
+ORDER BY 2 
+LIMIT 10;
 
+--	Combine the previous queries using a CTE to display priority products for restocking 
+
+WITH 
+table_lowstock AS (
+SELECT productCode, 
+       ROUND(SUM(quantityOrdered)*1.0/(SELECT quantityInStock
+	   FROM products p
+	   WHERE 
+	   o.productCode = p.productCode),2) low_stock
+ FROM  orderdetails o
+ GROUP BY 1
+ ORDER BY low_stock DESC
+ LIMIT 10
+)
+SELECT productCode, 
+	   SUM(quantityOrdered * priceEach ) product_performance  
+ FROM  orderdetails o
+ WHERE productCode IN(SELECT productCode
+                       FROM table_lowstock)
+GROUP BY 1
+ORDER BY 2
+LIMIT 10;
+	   
