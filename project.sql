@@ -103,4 +103,47 @@ SELECT productCode,
 GROUP BY 1
 ORDER BY 2
 LIMIT 10;
+
+-- Question 2
+--How should we match marketing and communication strategies to customer behaviour?
+/*
+This involves categorizing customers: finding VIP customers who bring in most profit for the store and 
+the less engaged customers who  bring in less profit. For example, we could organize some events to drive loyalty for 
+the VIPs and launch a campaign for the less engaged. We are going to need tables: products, orderdetails and orders.
+*/
+SELECT customerNumber ,
+       SUM(quantityOrdered * (priceEach - buyPrice)) Profit
+  FROM  products p
+INNER JOIN orderdetails o
+ON      p.productCode = o.productCode
+INNER JOIN orders od 
+ON      o.orderNumber = od.orderNumber
+GROUP BY 1
+ORDER BY 2 DESC;
+-- Use the previous query as a CTE
+WITH 
+profits AS(
+			SELECT customerNumber ,
+				   SUM(quantityOrdered * (priceEach - buyPrice)) Profit
+			  FROM  products p
+			INNER JOIN orderdetails o
+			ON      p.productCode = o.productCode
+			INNER JOIN orders od 
+			ON      o.orderNumber = od.orderNumber
+			GROUP BY 1
+			ORDER BY 2 DESC
+			)
+SELECT customers.contactLastName,
+       customers.contactFirstName,
+	   customers.city,
+	   customers.country,
+	   profits.profit 
+FROM profits 
+JOIN customers 
+ON customers.customerNumber = profits.customerNumber
+GROUP BY 1,2
+ORDER BY 5 DESC
+LIMIT 10;
+
+
 	   
