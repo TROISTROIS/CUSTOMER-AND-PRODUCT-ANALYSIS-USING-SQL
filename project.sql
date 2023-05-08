@@ -144,6 +144,48 @@ ON customers.customerNumber = profits.customerNumber
 GROUP BY 1,2
 ORDER BY 5 DESC
 LIMIT 10;
-
+-- Finding the least 5 customers
+WITH 
+profits AS(
+			SELECT customerNumber ,
+				   SUM(quantityOrdered * (priceEach - buyPrice)) Profit
+			  FROM  products p
+			INNER JOIN orderdetails o
+			ON      p.productCode = o.productCode
+			INNER JOIN orders od 
+			ON      o.orderNumber = od.orderNumber
+			GROUP BY 1
+			ORDER BY 2 DESC
+			)
+SELECT customers.contactLastName,
+       customers.contactFirstName,
+	   customers.city,
+	   customers.country,
+	   profits.profit 
+FROM profits 
+JOIN customers 
+ON customers.customerNumber = profits.customerNumber
+GROUP BY 1,2
+ORDER BY 5 
+LIMIT 10;
+/* QUESTION 3 
+How much can we spend on new customers? 
+To determine how much money we can spend acquiring new customers, we can compute the Customer Lifetime Value(LTV),
+which represents the average amount of money a customer generates. We can then determine how much we can spend on marketing.
+*/
+WITH 
+profits AS(
+			SELECT customerNumber ,
+				   SUM(quantityOrdered * (priceEach - buyPrice)) Profit
+			  FROM  products p
+			INNER JOIN orderdetails o
+			ON      p.productCode = o.productCode
+			INNER JOIN orders od 
+			ON      o.orderNumber = od.orderNumber
+			GROUP BY 1
+			)
+SELECT 
+		AVG(profits.Profit ) LTV
+FROM profits ;
 
 	   
